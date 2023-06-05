@@ -20,12 +20,12 @@ win.geometry('950x600')
                     
 canvas1 = tk.Canvas(bg="white", width=800, height=400)
 canvas1.place(y=0, x=0)
-canvas2 = tk.Canvas(bg="gray", width=945, height=190)
-canvas2.place(y=405, x=0)
+#canvas2 = tk.Canvas(bg="gray", width=945, height=190)
+#canvas2.place(y=405, x=0)
 #t = RawTurtle(canvas2)
 
 screen = t.Screen()
-screen.setup (1800, 700)
+screen.setup(1800, 700)
 screen.bgcolor('white')
 t.speed(10000)
 t.tracer(0)
@@ -53,15 +53,21 @@ def click_button():
             bear = data[i].get()
         elif i==2:
             cour = data[i].get()
-    #signal(ti,fd,ts,fs,pi)
-    zaderjka(dist, bear, cour, d, vc, fd, pi)
-    risovalka(dist, bear, cour, pi)
-    if tar == "Lodo4ka":
-        target_L(otau, fd, ti, ts, dist, cour)
-    elif tar == "Imitator":
-        target_I(otau, fd, ti, ts, dist, cour)
-    elif tar == "Cloud":
-        target_C(otau, fd, ti, ts)
+    if dist == "" or bear == "" or cour == "" or tar == "":
+        warning = tk.Label(foreground="red", text="Enter all data pls", font=("Times New Roman", 12, "bold")).place(y=360, x=810)
+    elif (0 < int(dist) < 4500) and (-90 < int(bear) < 90) and (-180 < int(cour) < 180):
+        warning = tk.Label(foreground="green", text="Thx - Data is OK", font=("Times New Roman", 12, "bold")).place(y=360, x=810)
+        # signal(ti,fd,ts,fs,pi)
+        zaderjka(dist, bear, cour, d, vc, fd, pi)
+        risovalka(dist, bear, cour, pi)
+        if tar == "Lodo4ka":
+            target_L(otau, fd, ti, ts, dist, cour)
+        elif tar == "Imitator":
+            target_I(otau, fd, ti, ts, dist, cour)
+        elif tar == "Cloud":
+            target_C(otau, fd, ti, ts)
+    else:
+        warning = tk.Label(foreground="red", text="Try another data", font=("Times New Roman", 12, "bold")).place(y=360, x=810)
 
 ## Вводимые параметры моделирования
 btn = ["Distance, m", "Bearing, deg", "Course angle, deg"]
@@ -70,23 +76,23 @@ data = [0, 0, 0]
 
 ## Наполнение интерфейса
 for a in range(len(btn)):
-    tk.Label(text=btn[a], font=("Times New Roman", 12, "bold")) .place (y=10+60*a, x=810)
+    tk.Label(text=btn[a], font=("Times New Roman", 12, "bold")) .place(y=10+60*a, x=810)
     data[a] = ttk.Entry()
-    data[a].place (y=40+60*a, x=810)
+    data[a].place(y=40+60*a, x=810)
      
-tk.Button (text='FIRE', command=click_button, font=("Times New Roman", 12, "bold"),
+tk.Button(text='FIRE', command=click_button, font=("Times New Roman", 12, "bold"),
     width=13).place(y=300, x=810)
      
-st = ["Tonal" , "Noise", "AM-signal"]
+st = ["Tonal", "Noise", "AM-signal"]
 coms = ttk.Combobox(values=st, width=18)
 coms.place (y=200, x=810)
       
 tt = ["Lodo4ka", "Imitator", "Cloud"]
 comt = ttk.Combobox(values=tt, width=18)
-comt.place (y=240, x=810)
+comt.place(y=240, x=810)
 
-canvas1.create_oval(2,2,798,798)
-canvas1.create_oval(390,390,410,410,fill="red")
+canvas1.create_oval(2, 2, 798, 798)
+canvas1.create_oval(390, 390, 410, 410, fill="red")
 
 ## Отображение расположения цели
 def risovalka(dist, bear, cour, pi):
@@ -96,7 +102,7 @@ def risovalka(dist, bear, cour, pi):
     y2 = -mt.cos(pi*(int(cour)-195)/180)*20 + y1
     x3 = mt.sin(pi*(int(cour)-165)/180)*20 + x1
     y3 = -mt.cos(pi*(int(cour)-165)/180)*20 + y1
-    canvas1.create_polygon(x1,y1,x2,y2,x3,y3)
+    canvas1.create_polygon(x1, y1, x2, y2, x3, y3)
 
 ## Расчет задержек сигнала на приёмниках
 def zaderjka(dist, bear, cour, d, vc, fd, pi):
@@ -119,18 +125,16 @@ def signal(ti,fd,ts,fs,pi):
     time_sig = [0]
     ns = [0]
     sg = [0]
-    sg1 = [0]
-    sg2 = [0]
     asig = 0
     
-    for i in range (1, ti*fd):
+    for i in range(1, ti*fd):
         ns.append(rm.random())
-    for p in range (1, int(ts*fd)):
+    for p in range(1, int(ts*fd)):
         time_sig.append(time_sig[p-1] + 1/fd)
         sg.append(mt.sin(2*pi*fs*time_sig[p]))
     for d in range(int(ts*fd), ti*fd):
         sg.append(0)
-    for k in range (0, ti*fd):
+    for k in range(0, ti*fd):
         asig = ns[k]/10 + sg[k]
     return(asig)
 
@@ -142,25 +146,26 @@ def target_L(otau, fd, ti, ts, dist, cour):
     sig1 = [0]
     for d in range(1, round(otau[0])):
         sig1.append(0)
-    for i in range (round(otau[0]), round(otau[0])+int(ts*fd+rast*fd)):
+    for i in range(round(otau[0]), round(otau[0])+int(ts*fd+rast*fd)):
         sig1.append(mt.sin(2*pi*fs*i/fd)/dec)
     for b in range(round(otau[0])+int(ts*fd+rast*fd), int(ti*fd)):
         sig1.append(0)
-    for n in range (0, ti*fd):
+    for n in range(0, ti*fd):
         t.color('red')
         t.goto(n/fd*300-900, sig1[n]*250)
         
     sig2 = [0]    
     for d in range(1, round(otau[1])):
         sig2.append(0)
-    for i in range (round(otau[1]), round(otau[1])+int(ts*fd+rast*fd)):
+    for i in range(round(otau[1]), round(otau[1])+int(ts*fd+rast*fd)):
         sig2.append(mt.sin(2*pi*fs*i/fd)/dec)
     for b in range(round(otau[1])+int(ts*fd+rast*fd), int(ti*fd)):
         sig2.append(0)
         
-    for n in range (0, ti*fd):
+    for n in range(0, ti*fd):
         t.color('green')
         t.goto(n/fd*300-900, sig2[n]*250)
+    find_class(sig1, sig2, ti, fd)
 
 ## Отраженный сигнал от пары имитаторов
 def target_I(otau, fd, ti, ts, dist, cour):
@@ -172,20 +177,20 @@ def target_I(otau, fd, ti, ts, dist, cour):
     for d in range(1, round(otau[0])):
         sig1.append(0)
     if round(otau_rast) <= int(ts*fd):
-        for i in range (round(otau[0]), round(otau[0])+int(oafter)):
+        for i in range(round(otau[0]), round(otau[0])+int(oafter)):
             sig1.append(mt.sin(2*pi*fs*i/fd))
         for b in range(round(otau[0])+int(oafter), int(ti*fd)):
             sig1.append(0)
     elif round(otau_rast) > int(ts*fd):
-        for i in range (round(otau[0]), round(otau[0])+int(ts*fd)):
+        for i in range(round(otau[0]), round(otau[0])+int(ts*fd)):
             sig1.append(mt.sin(2*pi*fs*i/fd))
         for p in range(round(otau[0])+int(ts*fd), round(otau[0])+round(otau_rast)):
             sig1.append(0)
-        for s in range (round(otau[0])+round(otau_rast), round(otau[0])+int(oafter)):
+        for s in range(round(otau[0])+round(otau_rast), round(otau[0])+int(oafter)):
             sig1.append(mt.sin(2*pi*fs*s/fd))          
         for b in range(round(otau[0])+int(oafter), int(ti*fd)):
             sig1.append(0)        
-    for n in range (0, ti*fd):
+    for n in range(0, ti*fd):
         t.color('red')
         t.goto(n/fd*300-900, sig1[n]*250)
         
@@ -193,45 +198,55 @@ def target_I(otau, fd, ti, ts, dist, cour):
     for d in range(1, round(otau[1])):
         sig2.append(0)
     if round(otau_rast) <= int(ts*fd):
-        for i in range (round(otau[1]), round(otau[1])+int(oafter)):
+        for i in range(round(otau[1]), round(otau[1])+int(oafter)):
             sig2.append(mt.sin(2*pi*fs*i/fd))
         for b in range(round(otau[1])+int(oafter), int(ti*fd)):
             sig2.append(0)
     elif round(otau_rast) > int(ts*fd):
-        for i in range (round(otau[1]), round(otau[0])+int(ts*fd)):
+        for i in range(round(otau[1]), round(otau[0])+int(ts*fd)):
             sig2.append(mt.sin(2*pi*fs*i/fd))
         for p in range(round(otau[1])+int(ts*fd), round(otau[1])+round(otau_rast)):
             sig2.append(0)
-        for s in range (round(otau[1])+round(otau_rast), round(otau[1])+int(oafter)):
+        for s in range(round(otau[1])+round(otau_rast), round(otau[1])+int(oafter)):
             sig2.append(mt.sin(2*pi*fs*s/fd))          
         for b in range(round(otau[1])+int(oafter), int(ti*fd)):
             sig2.append(0)
-    for n in range (0, ti*fd):
+    for n in range(0, ti*fd):
         t.color('green')
         t.goto(n/fd*300-900, sig2[n]*250)
+    find_class(sig1, sig2, ti, fd)
 
 ## Отраженный сигнал от облака осколков/мелких_объектов/пассивных_имитаторов
 def target_C(otau, fd, ti, ts):
     sig1 = [0]
     for d in range(1, round(otau[0])):
         sig1.append(0)
-    for i in range (round(otau[0]), round(otau[0])+int(ts*fd+0.1*fd)):
+    for i in range(round(otau[0]), round(otau[0])+int(ts*fd+0.1*fd)):
         sig1.append(mt.sin(2*pi*fs*i/fd)*0.6)
     for b in range(round(otau[0])+int(ts*fd+0.1*fd), int(ti*fd)):
         sig1.append(0)
-    for n in range (0, ti*fd):
+    for n in range(0, ti*fd):
         t.color('red')
         t.goto(n/fd*300-900, sig1[n]*250)
         
     sig2 = [0]    
     for d in range(1, round(otau[1])):
         sig2.append(0)
-    for i in range (round(otau[1]), round(otau[1])+int(ts*fd+0.1*fd)):
+    for i in range(round(otau[1]), round(otau[1])+int(ts*fd+0.1*fd)):
         sig2.append(mt.sin(2*pi*fs*i/fd)*0.6)
     for b in range(round(otau[1])+int(ts*fd+0.1*fd), int(ti*fd)):
         sig2.append(0)
-    for n in range (0, ti*fd):
+    for n in range(0, ti*fd):
         t.color('green')
-        t.goto(n/fd*300-900, sig2[n]*250)  
-           
+        t.goto(n/fd*300-900, sig2[n]*250)
+    find_class(sig1, sig2, ti, fd)
+
+def find_class(sig1, sig2, ti, fd):
+    dist_c = dist
+    bear_c = bear
+    type_c = tar
+    tk.Label(text=dist_c, font=("Times New Roman", 12, "bold")).place(y=450, x=50)
+    tk.Label(text=bear_c, font=("Times New Roman", 12, "bold")).place(y=475, x=50)
+    tk.Label(text=type_c, font=("Times New Roman", 12, "bold")).place(y=500, x=50)
+
 win.mainloop()
