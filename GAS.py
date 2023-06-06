@@ -2,6 +2,7 @@ import tkinter as tk
 import math as mt
 import turtle as t
 import random as rm
+from scipy import integrate
 from tkinter import ttk
 
 ## Основные параметры моделирования
@@ -112,7 +113,7 @@ def zaderjka(dist, bear, cour, d, vc, fd, pi):
         tau[1] = tau[0] + mt.sin(int(bear)*pi/180)*d/vc
     elif int(bear) < 0:
         tau[0] = int(dist)*2/vc
-        tau[1] = tau[0] - mt.sin(int(bear)*pi/180)*d/vc
+        tau[1] = tau[0] + mt.sin(int(bear)*pi/180)*d/vc
     elif int(bear) == 0:
         tau[0] = int(dist)*2/vc
         tau[1] = tau[0]
@@ -193,7 +194,7 @@ def target_I(otau, fd, ti, ts, dist, cour):
     for n in range(0, ti*fd):
         t.color('red')
         t.goto(n/fd*300-900, sig1[n]*250)
-        
+    print(len(sig1))
     sig2 = [0]    
     for d in range(1, round(otau[1])):
         sig2.append(0)
@@ -203,7 +204,7 @@ def target_I(otau, fd, ti, ts, dist, cour):
         for b in range(round(otau[1])+int(oafter), int(ti*fd)):
             sig2.append(0)
     elif round(otau_rast) > int(ts*fd):
-        for i in range(round(otau[1]), round(otau[0])+int(ts*fd)):
+        for i in range(round(otau[1]), round(otau[1])+int(ts*fd)):
             sig2.append(mt.sin(2*pi*fs*i/fd))
         for p in range(round(otau[1])+int(ts*fd), round(otau[1])+round(otau_rast)):
             sig2.append(0)
@@ -211,6 +212,7 @@ def target_I(otau, fd, ti, ts, dist, cour):
             sig2.append(mt.sin(2*pi*fs*s/fd))          
         for b in range(round(otau[1])+int(oafter), int(ti*fd)):
             sig2.append(0)
+    print(len(sig2))
     for n in range(0, ti*fd):
         t.color('green')
         t.goto(n/fd*300-900, sig2[n]*250)
@@ -240,13 +242,47 @@ def target_C(otau, fd, ti, ts):
         t.color('green')
         t.goto(n/fd*300-900, sig2[n]*250)
     find_class(sig1, sig2, ti, fd)
-
+    
+## Определение дальности, пеленга и типа цели по Эхо-сигналу
 def find_class(sig1, sig2, ti, fd):
-    dist_c = dist
-    bear_c = bear
-    type_c = tar
-    tk.Label(text=dist_c, font=("Times New Roman", 12, "bold")).place(y=450, x=50)
-    tk.Label(text=bear_c, font=("Times New Roman", 12, "bold")).place(y=475, x=50)
-    tk.Label(text=type_c, font=("Times New Roman", 12, "bold")).place(y=500, x=50)
+    blik1 = [0]
+    blik2 = [0]
+    porog1 = 0
+    porog2 = 0
+    poroglist1 = [0]
+    poroglist2 = [0]
+    for x in range(1, int(ti*fd)):
+        poroglist1.append(porog1)
+        poroglist2.append(porog2)
+        porog1 = porog1 + abs(sig1[x]) - 0.3
+        porog2 = porog2 + abs(sig2[x]) - 0.3
+        if porog1 < 0:
+            porog1 = 0
+        elif porog1 > 0 and poroglist1[x] == 0 and poroglist1[x-1] == 0 and poroglist1[x-2] == 0:
+            blik1.append(x)
+        if porog2 < 0:
+            porog2 = 0
+        elif porog2 > 0 and poroglist2[x] == 0 and poroglist2[x - 1] == 0 and poroglist2[x - 2] == 0:
+            blik2.append(x)
+    print(blik1, blik2)
+    print(poroglist1[blik1[1]+1])
+
+    bear_c = mt.asin((blik2[1] - blik1[1])*vc/fd/d)*180/pi
+    dist_c = blik1[1]*vc/fd/2
+
+    if len(blik1) == 3:
+        type_c = "Imitator"
+    elif poroglist1[blik1[1]+1] > 0.22:
+        type_c = "Lodo4ka"
+    elif poroglist1[blik1[1]+1] < 0.22:
+        type_c = "Cloud MB"
+
+    tk.Label(text="Output distance", font=("Times New Roman", 12, "bold")).place(y=450, x=50)
+    tk.Label(text="Output bearing", font=("Times New Roman", 12, "bold")).place(y=475, x=50)
+    tk.Label(text="Output target type", font=("Times New Roman", 12, "bold")).place(y=500, x=50)
+    
+    tk.Label(text=round(dist_c), font=("Times New Roman", 12, "bold")).place(y=450, x=250)
+    tk.Label(text=round(bear_c), font=("Times New Roman", 12, "bold")).place(y=475, x=250)
+    tk.Label(text=type_c, font=("Times New Roman", 12, "bold")).place(y=500, x=250)
 
 win.mainloop()
